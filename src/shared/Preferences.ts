@@ -53,7 +53,7 @@ export const DEFAULT_PREFS: Preferences = {
   ctreLicenseAccepted: false
 };
 
-export type LiveMode = "nt4" | "nt4-akit" | "phoenix" | "rlog" | "ftcdashboard";
+export type LiveMode = "nt4" | "nt4-akit" | "phoenix" | "rlog" | "ftcdashboard" | "rev";
 
 export function getLiveModeName(mode: LiveMode): string {
   switch (mode) {
@@ -67,6 +67,8 @@ export function getLiveModeName(mode: LiveMode): string {
       return "RLOG Server";
     case "ftcdashboard":
       return "FTC Dashboard";
+    case "rev":
+      return "Rev Dashboard";
   }
 }
 
