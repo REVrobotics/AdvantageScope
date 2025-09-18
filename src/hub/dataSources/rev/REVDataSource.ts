@@ -12,7 +12,11 @@ export default class REVDataSource extends LiveDataSource {
   ) {
     super.connect(address, statusCallback, outputCallback, false);
     this.log = new Log();
-    this.client = new REVTelemetryClient(this.log);
+    this.client = new REVTelemetryClient(this.log, this.onMessage.bind(this));
     this.client.connect();
+  }
+
+  onMessage() {
+    this.status = LiveDataSourceStatus.Active;
   }
 }

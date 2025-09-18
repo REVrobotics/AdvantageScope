@@ -2,9 +2,11 @@ import Log from "../../../shared/log/Log";
 
 export class REVTelemetryClient {
   log: Log;
+  onMessage: () => void;
 
-  constructor(log: Log) {
+  constructor(log: Log, onMessage: () => void) {
     this.log = log;
+    this.onMessage = onMessage;
   }
 
   connect() {
@@ -27,8 +29,9 @@ export class REVTelemetryClient {
   }
 
   handleStatusFrame(frameData: any) {
+    this.onMessage();
     let descriptor = frameData.descriptor;
-    let timestamp = Date.now();
+    let timestamp = frameData.timestamp;
 
     for(let statusFrameKey in frameData) {
       let statusFrame = frameData[statusFrameKey];
