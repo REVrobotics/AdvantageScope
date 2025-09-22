@@ -127,6 +127,12 @@ export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
   if ("rlogPort" in newPrefs && typeof newPrefs.rlogPort === "number") {
     basePrefs.rlogPort = newPrefs.rlogPort;
   }
+  if ("revPort" in newPrefs && typeof newPrefs.revPort === "number") {
+    basePrefs.revTelemetryPort = newPrefs.revPort;
+  }
+  if ("revKey" in newPrefs && typeof newPrefs.revKey === "string") {
+    basePrefs.revTelemetryKey = newPrefs.revKey;
+  }
   if (
     "coordinateSystem" in newPrefs &&
     (newPrefs.coordinateSystem === "automatic" ||
