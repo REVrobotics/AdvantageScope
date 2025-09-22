@@ -29,6 +29,8 @@ export default interface Preferences {
   skipFrcLogFolderDefault: boolean;
   ctreLicenseAccepted: boolean;
   usb?: boolean;
+  revTelemetryPort: number;
+  revTelemetryKey: string;
 }
 
 export const DEFAULT_PREFS: Preferences = {
@@ -50,7 +52,9 @@ export const DEFAULT_PREFS: Preferences = {
   skipFrcLogFolderDefault: false,
   skipNumericArrayDeprecationWarning: false,
   skipFTCExperimentalWarning: false,
-  ctreLicenseAccepted: false
+  ctreLicenseAccepted: false,
+  revTelemetryPort: 8080,
+  revTelemetryKey: "REV",
 };
 
 export type LiveMode = "nt4" | "nt4-akit" | "phoenix" | "rlog" | "ftcdashboard" | "rev";

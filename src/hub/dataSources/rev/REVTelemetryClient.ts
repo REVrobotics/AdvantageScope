@@ -9,11 +9,11 @@ export class REVTelemetryClient {
     this.onMessage = onMessage;
   }
 
-  connect() {
-    let socket = new WebSocket("ws://127.0.0.1:59977/v1/ws/status");
+  connect(address: string, port: number) {
+    let socket = new WebSocket(`ws://${address}:${port}/v1/ws/status`);
 
     socket.addEventListener("open", event => {
-      let key = crypto.randomUUID();
+      let key = window.preferences?.revTelemetryKey ?? crypto.randomUUID();
       console.log(key);
 
       socket.send(JSON.stringify({ key: key }));
