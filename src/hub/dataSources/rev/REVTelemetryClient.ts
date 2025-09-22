@@ -30,11 +30,11 @@ export class REVTelemetryClient {
 
   handleStatusFrame(frameData: any) {
     this.onMessage();
-    let descriptor = frameData.descriptor;
     let timestamp = frameData.timestamp;
+    let name = frameData.name;
 
-    for(let statusFrameKey in frameData) {
-      let statusFrame = frameData[statusFrameKey];
+    for(let statusFrameKey in frameData.data) {
+      let statusFrame = frameData.data[statusFrameKey];
 
       if(statusFrame === undefined || statusFrame === null) {
         continue;
@@ -46,7 +46,7 @@ export class REVTelemetryClient {
 
       for(let fieldKey in statusFrame) {
         let value = statusFrame[fieldKey];
-        let fieldName = `${descriptor}.${statusFrameKey}.${fieldKey}`;
+        let fieldName = `${name}.${statusFrameKey}.${fieldKey}`;
 
         if(value !== undefined && value !== null) {
           console.log(`Status: ${fieldName}: ${value}`);
