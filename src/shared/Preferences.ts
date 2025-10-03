@@ -108,7 +108,8 @@ export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
       newPrefs.liveMode === "nt4-akit" ||
       newPrefs.liveMode === "phoenix" ||
       newPrefs.liveMode === "rlog" ||
-      newPrefs.liveMode === "ftcdashboard")
+      newPrefs.liveMode === "ftcdashboard" ||
+      newPrefs.liveMode === "rev")
   ) {
     basePrefs.liveMode = newPrefs.liveMode;
   }
