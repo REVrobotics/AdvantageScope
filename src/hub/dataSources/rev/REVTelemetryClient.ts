@@ -49,8 +49,6 @@ export class REVTelemetryClient {
         let fieldName = `${name}.${statusFrameKey}.${fieldKey}`;
 
         if(value !== undefined && value !== null) {
-          console.log(`Status: ${fieldName}: ${value}`);
-
           switch(typeof value) {
             case "number":
               this.log.putNumber(fieldName, timestamp, value);
