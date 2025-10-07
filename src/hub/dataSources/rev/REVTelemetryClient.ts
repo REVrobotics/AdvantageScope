@@ -46,7 +46,7 @@ export class REVTelemetryClient {
 
       for(let fieldKey in statusFrame) {
         let value = statusFrame[fieldKey];
-        let fieldName = `${name}.${statusFrameKey}.${fieldKey}`;
+        let fieldName = `${name}/${statusFrameKey}/${fieldKey}`;
 
         if(value !== undefined && value !== null) {
           switch(typeof value) {
