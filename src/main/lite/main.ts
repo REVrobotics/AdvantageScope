@@ -33,6 +33,12 @@ import { loadAssets } from "./assetLoader";
 import { isAlpha, isBeta, isBetaExpired, isBetaWelcomeComplete, saveBetaWelcomeComplete } from "./betaUtil";
 import { LocalStorageKeys } from "./localStorageKeys";
 
+declare global {
+  interface Window {
+    hubWindow: Window | null;
+  }
+}
+
 let HUB_FRAME: HTMLIFrameElement;
 let POPUP_FRAME: HTMLIFrameElement;
 let POINTER_BLOCK: HTMLElement;
@@ -1326,4 +1332,6 @@ window.addEventListener("load", () => {
       });
     }
   }
+
+window.hubWindow = HUB_FRAME.contentWindow;
 });
