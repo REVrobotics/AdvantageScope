@@ -36,6 +36,12 @@ import { isAlpha, isBeta, isBetaExpired, isBetaWelcomeComplete, saveBetaWelcomeC
 import DEFAULT_DS_LAYOUT from "./dsLayout";
 import { LocalStorageKeys } from "./localStorageKeys";
 
+declare global {
+  interface Window {
+    hubWindow: Window | null;
+  }
+}
+
 let HUB_FRAME: HTMLIFrameElement;
 let POPUP_FRAME: HTMLIFrameElement;
 let POINTER_BLOCK: HTMLElement;
@@ -1374,4 +1380,6 @@ window.addEventListener("load", () => {
       });
     }
   }
+
+window.hubWindow = HUB_FRAME.contentWindow;
 });
