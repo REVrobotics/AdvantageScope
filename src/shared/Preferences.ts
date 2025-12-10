@@ -72,7 +72,7 @@ export function getLiveModeName(mode: LiveMode): string {
     case "ftcdashboard":
       return "FTC Dashboard";
     case "rev":
-      return "Rev Dashboard";
+      return "REV Dashboard";
   }
 }
 
