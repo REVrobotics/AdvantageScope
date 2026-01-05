@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2025 Littleton Robotics
+// Copyright (c) 2021-2026 Littleton Robotics
 // http://github.com/Mechanical-Advantage
 //
 // Use of this source code is governed by a BSD
@@ -887,7 +887,9 @@ export namespace Units {
     let matchedSuffixes = Object.keys(UNIT_SUFFIXES).filter(
       (suffix) =>
         !suffix.includes("/") &&
+        fieldKey.length > suffix.length &&
         fieldKeyLowercase.endsWith(suffix.toLowerCase()) &&
+        !fieldKeyLowercase.endsWith("/" + suffix.toLowerCase()) &&
         (suffix.startsWith("_") || suffix.startsWith(" ") || charIsCapital(fieldKey, fieldKey.length - suffix.length))
     );
     if (matchedSuffixes.length === 0) return null;

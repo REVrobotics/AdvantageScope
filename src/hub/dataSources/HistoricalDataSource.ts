@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2025 Littleton Robotics
+// Copyright (c) 2021-2026 Littleton Robotics
 // http://github.com/Mechanical-Advantage
 //
 // Use of this source code is governed by a BSD
@@ -26,6 +26,7 @@ export class HistoricalDataSource {
   private WORKER_NAMES = {
     ".rlog": "hub$rlogWorker.js",
     ".wpilog": "hub$wpilogWorker.js",
+    ".wpilogxz": "hub$wpilogWorker.js", // Decompressed by main process
     ".hoot": "hub$wpilogWorker.js", // Converted to WPILOG by main process
     ".dslog": "hub$dsLogWorker.js",
     ".dsevents": "hub$dsLogWorker.js",

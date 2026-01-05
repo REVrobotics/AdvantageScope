@@ -25,6 +25,8 @@ jobs:
           cache: "npm"
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          YOUTUBE_DL_SKIP_DOWNLOAD: "true"
       - name: Check formatting
         run: npm run check-format
 
@@ -42,6 +44,8 @@ jobs:
           cache: "npm"
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          YOUTUBE_DL_SKIP_DOWNLOAD: "true"
       - name: Build docs
         run: npm run docs:build
       - name: Upload artifact
@@ -68,6 +72,8 @@ jobs:
           version: 4.0.12
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          YOUTUBE_DL_SKIP_DOWNLOAD: "true"
       - name: Compile WebAssembly
         run: npm run wasm:compile
       - name: Compile bundles
@@ -98,6 +104,8 @@ jobs:
           version: 4.0.12
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          YOUTUBE_DL_SKIP_DOWNLOAD: "true"
       - name: Compile WebAssembly
         run: npm run wasm:compile
       - name: Compile bundles
@@ -130,6 +138,8 @@ jobs:
           version: 4.0.12
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          YOUTUBE_DL_SKIP_DOWNLOAD: "true"
       - name: Compile WebAssembly
         run: npm run wasm:compile
       - name: Compile bundles
@@ -169,7 +179,21 @@ jobs:
       - name: Install Metal toolchain
         run: xcodebuild -downloadComponent MetalToolchain
       - name: Download iOS simulator
-        run: xcodebuild -downloadPlatform iOS
+        run: |
+          n=0
+          until [ "$n" -ge 5 ]
+          do
+            echo "Attempting download (Try $((n+1)))..."
+            xcodebuild -downloadPlatform iOS && break
+            n=$((n+1))
+            echo "Download failed. Sleeping 10 seconds before retry..."
+            sleep 10
+          done
+
+          if [ "$n" -ge 5 ]; then
+            echo "Failed to download iOS simulator after 5 attempts."
+            exit 1
+          fi
       - name: Build AdvantageScopeXR
         run: xcodebuild -project xr/AdvantageScopeXR.xcodeproj -scheme AdvantageScopeXR -sdk iphonesimulator build
       - name: Build AdvantageScopeXRClip
@@ -195,6 +219,8 @@ jobs:
           cache: "npm"
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Download bundles
         uses: actions/download-artifact@v4
         with:
@@ -252,6 +278,8 @@ jobs:
           cache: "npm"
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Load macOS certificate
         if: github.event_name != 'pull_request'
         run: |
@@ -329,6 +357,8 @@ jobs:
           cache: "npm"
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Linux packages
         run: |
           sudo apt-get update; sudo apt-get install --no-install-recommends -y libarchive-tools snapd
@@ -397,6 +427,8 @@ jobs:
           cache: "npm"
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Download bundles
         uses: actions/download-artifact@v4
         with:
@@ -458,6 +490,8 @@ jobs:
           cache: "npm"
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Load macOS certificate
         if: github.event_name != 'pull_request'
         run: |
@@ -532,6 +566,8 @@ jobs:
           cache: "npm"
       - name: Install Node.js dependencies
         run: npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Download bundles
         uses: actions/download-artifact@v4
         with:
