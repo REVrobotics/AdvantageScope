@@ -97,6 +97,14 @@ Several new visualization options are supported on the 🗺️ [2D Field](/tab-r
 
 ![New field visualizations](./img/whats-new/field-viz.jpg)
 
+## 🪵 REV Robotics CAN Log Support {#rev-robotics-can-log-support}
+
+You can now open `.revlog` files produced by REV Robotics' [`StatusLogger`](https://codedocs.revrobotics.com/java/com/revrobotics/util/statuslogger) directly in AdvantageScope. These files record CAN signals from Spark Max and Spark Flex devices, offering an official alternative to AdvantageScope's [URCL](/more-features/urcl) library.
+
+Both URCL and the official `StatusLogger` will remain available during the 2026 season to ensure a smooth transition and provide feature parity with previous seasons. We will have more details to share about logging options in 2027 and beyond at a later date.
+
+![REVLOG visualization](./img/whats-new/revlog.png)
+
 ## 💿 CSV File Imports {#csv-file-imports}
 
 For more flexible visualization of data produced outside of robot logging frameworks, AdvantageScope now includes basic support for importing CSV files. Check the [documentation](/overview/log-files/#csv-formatting) for more details on supported formats and other limitations.
@@ -131,3 +139,5 @@ This release includes a variety of bug fixes and stability improvements across t
 - AdvantageScope is now more tolerant of unusual log data, including large log files and large field values.
 - Various visual glitches have been fixed when browsing log data, especially when using filters on the line graph tab.
 - The ordering of AdvantageKit log files in the download window has been fixed; logs without timestamps are now at the bottom of the list, similar to other formats.
+- On the 3D field tab, robot cameras with a nonzero rotation in the roll axis are now visualized correctly.
+- The stability of AdvantageScope XR has been improved, especially when running on iOS/iPadOS 26. For offline installations, check the App Store for available updates.
