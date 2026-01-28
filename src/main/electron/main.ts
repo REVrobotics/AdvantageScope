@@ -2020,7 +2020,7 @@ function setupMenu() {
               }
             },
             { type: "separator" },
-            ...(["nt4", "nt4-akit", "phoenix", "rlog", "ftcdashboard"] as const).map((liveMode: LiveMode) => {
+            ...(["nt4", "nt4-akit", "phoenix", "rlog", "ftcdashboard", "rev"] as const).map((liveMode: LiveMode) => {
               let item: Electron.MenuItemConstructorOptions = {
                 label: getLiveModeName(liveMode),
                 click(_, baseWindow) {
@@ -2051,7 +2051,7 @@ function setupMenu() {
               }
             },
             { type: "separator" },
-            ...(["nt4", "nt4-akit", "phoenix", "rlog", "ftcdashboard"] as const).map((liveMode: LiveMode) => {
+            ...(["nt4", "nt4-akit", "phoenix", "rlog", "ftcdashboard", "rev"] as const).map((liveMode: LiveMode) => {
               let item: Electron.MenuItemConstructorOptions = {
                 label: getLiveModeName(liveMode),
                 click(_, baseWindow) {
@@ -3178,8 +3178,8 @@ function openPreferences(parentWindow: Electron.BrowserWindow) {
   }
 
   const width = 400;
-  const optionRows = 12;
-  const titleRows = 2;
+  const optionRows = 14;
+  const titleRows = 3;
   const height = optionRows * 27 + titleRows * 34 + 54;
   prefsWindow = new BrowserWindow({
     width: width,
