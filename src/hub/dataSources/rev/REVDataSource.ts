@@ -73,6 +73,14 @@ export default class REVDataSource extends LiveDataSource {
     this.client.connect(address, port);
   }
 
+  override stop() {
+    super.stop();
+
+    if (this.client) {
+      this.client.disconnect();
+    }
+  }
+
   onMessage() {
     this.setStatus(LiveDataSourceStatus.Active);
 
