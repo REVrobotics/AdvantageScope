@@ -29,6 +29,8 @@ export default interface Preferences {
   skipFrcLogFolderDefault: boolean;
   ctreLicenseAccepted: boolean;
   usb?: boolean;
+  revTelemetryPort: number;
+  revTelemetryKey: string;
 }
 
 export const DEFAULT_PREFS: Preferences = {
@@ -50,10 +52,12 @@ export const DEFAULT_PREFS: Preferences = {
   skipFrcLogFolderDefault: false,
   skipNumericArrayDeprecationWarning: false,
   skipFTCExperimentalWarning: false,
-  ctreLicenseAccepted: false
+  ctreLicenseAccepted: false,
+  revTelemetryPort: 8080,
+  revTelemetryKey: "REV",
 };
 
-export type LiveMode = "nt4" | "nt4-akit" | "phoenix" | "rlog" | "ftcdashboard";
+export type LiveMode = "nt4" | "nt4-akit" | "phoenix" | "rlog" | "ftcdashboard" | "rev";
 
 export function getLiveModeName(mode: LiveMode): string {
   switch (mode) {
@@ -67,12 +71,14 @@ export function getLiveModeName(mode: LiveMode): string {
       return "RLOG Server";
     case "ftcdashboard":
       return "FTC Dashboard";
+    case "rev":
+      return "REV Dashboard";
   }
 }
 
 // Phoenix not possible due to cross origin restrictions
 // RLOG not possible because it uses raw TCP
-export const LITE_ALLOWED_LIVE_MODES: LiveMode[] = ["nt4", "nt4-akit", "ftcdashboard"];
+export const LITE_ALLOWED_LIVE_MODES: LiveMode[] = ["nt4", "nt4-akit", "ftcdashboard", "rev"];
 
 export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
   if ("theme" in newPrefs && (newPrefs.theme === "light" || newPrefs.theme === "dark" || newPrefs.theme === "system")) {
@@ -102,7 +108,8 @@ export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
       newPrefs.liveMode === "nt4-akit" ||
       newPrefs.liveMode === "phoenix" ||
       newPrefs.liveMode === "rlog" ||
-      newPrefs.liveMode === "ftcdashboard")
+      newPrefs.liveMode === "ftcdashboard" ||
+      newPrefs.liveMode === "rev")
   ) {
     basePrefs.liveMode = newPrefs.liveMode;
   }
@@ -120,6 +127,12 @@ export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
   }
   if ("rlogPort" in newPrefs && typeof newPrefs.rlogPort === "number") {
     basePrefs.rlogPort = newPrefs.rlogPort;
+  }
+  if ("revTelemetryPort" in newPrefs && typeof newPrefs.revTelemetryPort === "number") {
+    basePrefs.revTelemetryPort = newPrefs.revTelemetryPort;
+  }
+  if ("revTelemetryKey" in newPrefs && typeof newPrefs.revTelemetryKey === "string") {
+    basePrefs.revTelemetryKey = newPrefs.revTelemetryKey;
   }
   if (
     "coordinateSystem" in newPrefs &&

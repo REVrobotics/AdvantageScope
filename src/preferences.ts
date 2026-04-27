@@ -22,6 +22,8 @@ const FIELD_3D_ANTIALIASING = document.getElementById("field3dAntialiasing") as 
 const TBA_API_KEY = document.getElementById("tbaApiKey") as HTMLInputElement;
 const EXIT_BUTTON = document.getElementById("exit") as HTMLInputElement;
 const CONFIRM_BUTTON = document.getElementById("confirm") as HTMLInputElement;
+const REV_PORT = document.getElementById("revPort") as HTMLInputElement;
+const REV_KEY = document.getElementById("revKey") as HTMLInputElement;
 
 window.addEventListener("message", (event) => {
   if (event.data === "port") {
@@ -67,6 +69,8 @@ window.addEventListener("message", (event) => {
       FIELD_3D_MODE_BATTERY.value = oldPrefs.field3dModeBattery;
       FIELD_3D_ANTIALIASING.value = oldPrefs.field3dAntialiasing.toString();
       TBA_API_KEY.value = oldPrefs.tbaApiKey;
+      REV_PORT.value = oldPrefs.revTelemetryPort.toString();
+      REV_KEY.value = oldPrefs.revTelemetryKey;
 
       // Close function
       function close(useNewPrefs: boolean) {
@@ -98,6 +102,11 @@ window.addEventListener("message", (event) => {
           if (FIELD_3D_MODE_BATTERY.value === "standard") field3dModeBattery = "standard";
           if (FIELD_3D_MODE_BATTERY.value === "low-power") field3dModeBattery = "low-power";
 
+          let revPort = parseInt(REV_PORT.value);
+          if(isNaN(revPort)) {
+            revPort = oldPrefs.revTelemetryPort;
+          }
+
           let newPrefs: Preferences = {
             theme: theme,
             robotAddress: ROBOT_ADDRESS.value,
@@ -117,7 +126,9 @@ window.addEventListener("message", (event) => {
             skipFrcLogFolderDefault: oldPrefs.skipFrcLogFolderDefault,
             skipNumericArrayDeprecationWarning: oldPrefs.skipNumericArrayDeprecationWarning,
             skipFTCExperimentalWarning: oldPrefs.skipFTCExperimentalWarning,
-            ctreLicenseAccepted: oldPrefs.ctreLicenseAccepted
+            ctreLicenseAccepted: oldPrefs.ctreLicenseAccepted,
+            revTelemetryKey: REV_KEY.value,
+            revTelemetryPort: revPort,
           };
           messagePort.postMessage(newPrefs);
         } else {

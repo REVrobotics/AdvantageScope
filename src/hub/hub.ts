@@ -29,6 +29,7 @@ import FTCDashboardSource from "./dataSources/ftcdashboard/FTCDashboardSource";
 import { NT4Publisher, NT4PublisherStatus } from "./dataSources/nt4/NT4Publisher";
 import NT4Source from "./dataSources/nt4/NT4Source";
 import RLOGServerSource from "./dataSources/rlog/RLOGServerSource";
+import REVDataSource from "./dataSources/rev/REVDataSource";
 
 // Constants
 const STATE_SAVE_PERIOD_MS = 250;
@@ -440,6 +441,8 @@ function startLive(isSim = false) {
     case "ftcdashboard":
       liveSource = new FTCDashboardSource();
       break;
+    case "rev":
+      liveSource = new REVDataSource();
   }
 
   let address = "";
