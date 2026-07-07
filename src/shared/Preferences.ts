@@ -29,6 +29,10 @@ export default interface Preferences {
   hasScrolledLineGraph: boolean;
   hasScrolledTimeline: boolean;
   revTelemetryPort: number;
+  // Host for REV telemetry in Lite mode. When empty, the page's hostname is
+  // used; an embedding app (e.g. REVUI) sets this to stream from a backend on
+  // another machine.
+  revTelemetryHost: string;
   revTelemetryKey: string;
 }
 
@@ -53,7 +57,8 @@ export const DEFAULT_PREFS: Preferences = {
   hasScrolledLineGraph: false,
   hasScrolledTimeline: false,
   revTelemetryPort: 8080,
-  revTelemetryKey: "REV",
+  revTelemetryHost: "",
+  revTelemetryKey: "REV"
 };
 
 export const DEFAULT_PREFS_LITEDS: Preferences = Object.assign({}, DEFAULT_PREFS, {
@@ -137,6 +142,9 @@ export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
   }
   if ("revTelemetryPort" in newPrefs && typeof newPrefs.revTelemetryPort === "number") {
     basePrefs.revTelemetryPort = newPrefs.revTelemetryPort;
+  }
+  if ("revTelemetryHost" in newPrefs && typeof newPrefs.revTelemetryHost === "string") {
+    basePrefs.revTelemetryHost = newPrefs.revTelemetryHost;
   }
   if ("revTelemetryKey" in newPrefs && typeof newPrefs.revTelemetryKey === "string") {
     basePrefs.revTelemetryKey = newPrefs.revTelemetryKey;

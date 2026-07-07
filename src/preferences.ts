@@ -129,6 +129,7 @@ window.addEventListener("message", (event) => {
             hasScrolledTimeline: oldPrefs.hasScrolledTimeline,
             revTelemetryKey: REV_KEY.value,
             revTelemetryPort: revPort,
+            revTelemetryHost: oldPrefs.revTelemetryHost
           };
           messagePort.postMessage(newPrefs);
         } else {

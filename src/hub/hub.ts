@@ -457,7 +457,10 @@ function startLive(sourceType: "robot" | "sim" | "ds") {
 
   let address = "";
   if (IS_LITE) {
-    address = window.location.hostname;
+    // An embedding app (e.g. REVUI) can set revTelemetryHost to stream live
+    // data from a backend on another machine; default to the page's host.
+    let hostOverride = window.preferences?.revTelemetryHost;
+    address = hostOverride ? hostOverride : window.location.hostname;
   } else if (sourceType === "sim" || sourceType === "ds") {
     address = "127.0.0.1";
   } else {
