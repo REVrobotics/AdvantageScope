@@ -123,10 +123,10 @@ window.addEventListener("message", (event) => {
             tbaApiKey: TBA_API_KEY.value,
             userAssetsFolder: oldPrefs.userAssetsFolder,
             skipHootNonProWarning: oldPrefs.skipHootNonProWarning,
-            skipFrcLogFolderDefault: oldPrefs.skipFrcLogFolderDefault,
-            skipNumericArrayDeprecationWarning: oldPrefs.skipNumericArrayDeprecationWarning,
-            skipFTCExperimentalWarning: oldPrefs.skipFTCExperimentalWarning,
             ctreLicenseAccepted: oldPrefs.ctreLicenseAccepted,
+            systemcoreStaticAddress: oldPrefs.systemcoreStaticAddress,
+            hasScrolledLineGraph: oldPrefs.hasScrolledLineGraph,
+            hasScrolledTimeline: oldPrefs.hasScrolledTimeline,
             revTelemetryKey: REV_KEY.value,
             revTelemetryPort: revPort,
           };

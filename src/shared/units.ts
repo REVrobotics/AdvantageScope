@@ -644,6 +644,12 @@ export namespace Units {
         suffix: "°F",
         pluralizeSuffix: false,
         names: ["f", "°f", "\u2109", "fahrenheit"]
+      },
+      kelvin: {
+        value: 1, // Requires custom conversion
+        suffix: "K",
+        pluralizeSuffix: false,
+        names: ["k", "\u212A", "kelvin"]
       }
     },
     voltage: {
@@ -692,6 +698,12 @@ export namespace Units {
         suffix: "cal",
         pluralizeSuffix: true,
         names: ["cal", "calorie", "calories"]
+      },
+      potato: {
+        value: 1 / 4.184 / 1000 / 110,
+        suffix: "pot",
+        pluralizeSuffix: false,
+        names: ["pot", "potato", "potatoes"]
       }
     }
   };
@@ -722,10 +734,20 @@ export namespace Units {
       ry: "radians",
       rz: "radians"
     },
+    ChassisVelocities: {
+      vx: "meters/second",
+      vy: "meters/second",
+      omega: "radians/second"
+    },
     ChassisSpeeds: {
       vx: "meters/second",
       vy: "meters/second",
       omega: "radians/second"
+    },
+    ChassisAccelerations: {
+      ax: "meters/second²",
+      ay: "meters/second²",
+      alpha: "radians/second²"
     },
     DifferentialDriveKinematics: {
       track_width: "meters"
@@ -734,9 +756,17 @@ export namespace Units {
       left: "meters",
       right: "meters"
     },
+    DifferentialDriveWheelVelocities: {
+      left: "meters/second",
+      right: "meters/second"
+    },
     DifferentialDriveWheelSpeeds: {
       left: "meters/second",
       right: "meters/second"
+    },
+    DifferentialDriveWheelAccelerations: {
+      left: "meters/second²",
+      right: "meters/second²"
     },
     DifferentialDriveWheelVoltages: {
       left: "volts",
@@ -748,17 +778,35 @@ export namespace Units {
       rear_left: "meters",
       rear_right: "meters"
     },
+    MecanumDriveWheelVelocities: {
+      front_left: "meters/second",
+      front_right: "meters/second",
+      rear_left: "meters/second",
+      rear_right: "meters/second"
+    },
     MecanumDriveWheelSpeeds: {
       front_left: "meters/second",
       front_right: "meters/second",
       rear_left: "meters/second",
       rear_right: "meters/second"
     },
-    SwerveModulePositionStruct: {
+    MecanumDriveWheelAccelerations: {
+      front_left: "meters/second²",
+      front_right: "meters/second²",
+      rear_left: "meters/second²",
+      rear_right: "meters/second²"
+    },
+    SwerveModulePosition: {
       distance: "meters"
+    },
+    SwerveModuleVelocity: {
+      speed: "meters/second"
     },
     SwerveModuleState: {
       speed: "meters/second"
+    },
+    SwerveModuleAcceleration: {
+      speed: "meters/second²"
     },
     ArmFeedforward: {
       dt: "seconds"
@@ -783,13 +831,19 @@ export namespace Units {
     if (!(from in ALL_UNITS && to in ALL_UNITS)) throw "Invalid unit provided";
 
     let standardValue;
+
     if (from === "fahrenheit") {
       standardValue = (value - 32) / 1.8;
+    } else if (from == "kelvin") {
+      standardValue = value - 273.15;
     } else {
       standardValue = value / ALL_UNITS[from].value;
     }
+
     if (to === "fahrenheit") {
       return standardValue * 1.8 + 32;
+    } else if (to === "kelvin") {
+      return standardValue + 273.15;
     } else {
       return standardValue * ALL_UNITS[to].value;
     }

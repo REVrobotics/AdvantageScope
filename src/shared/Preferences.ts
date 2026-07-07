@@ -24,11 +24,10 @@ export default interface Preferences {
   tbaApiKey: string;
   userAssetsFolder: string | null;
   skipHootNonProWarning: boolean;
-  skipNumericArrayDeprecationWarning: boolean;
-  skipFTCExperimentalWarning: boolean;
-  skipFrcLogFolderDefault: boolean;
   ctreLicenseAccepted: boolean;
-  usb?: boolean;
+  systemcoreStaticAddress: "" | "usb" | "wifi";
+  hasScrolledLineGraph: boolean;
+  hasScrolledTimeline: boolean;
   revTelemetryPort: number;
   revTelemetryKey: string;
 }
@@ -49,22 +48,29 @@ export const DEFAULT_PREFS: Preferences = {
   tbaApiKey: "",
   userAssetsFolder: null,
   skipHootNonProWarning: false,
-  skipFrcLogFolderDefault: false,
-  skipNumericArrayDeprecationWarning: false,
-  skipFTCExperimentalWarning: false,
   ctreLicenseAccepted: false,
+  systemcoreStaticAddress: "",
+  hasScrolledLineGraph: false,
+  hasScrolledTimeline: false,
   revTelemetryPort: 8080,
   revTelemetryKey: "REV",
 };
 
-export type LiveMode = "nt4" | "nt4-akit" | "phoenix" | "rlog" | "ftcdashboard" | "rev";
+export const DEFAULT_PREFS_LITEDS: Preferences = Object.assign({}, DEFAULT_PREFS, {
+  remotePath: "",
+  liveSubscribeMode: "logging"
+});
+
+export type LiveMode = "nt4" | "nt4-akit" | "nt4-systemcore" | "phoenix" | "rlog" | "ftcdashboard" | "rev";
 
 export function getLiveModeName(mode: LiveMode): string {
   switch (mode) {
     case "nt4":
-      return "NetworkTables 4";
+      return "NetworkTables";
     case "nt4-akit":
-      return "NetworkTables 4 (AdvantageKit)";
+      return "NetworkTables (AdvantageKit)";
+    case "nt4-systemcore":
+      return "Systemcore Diagnostics";
     case "phoenix":
       return "Phoenix Diagnostics";
     case "rlog":
@@ -78,7 +84,7 @@ export function getLiveModeName(mode: LiveMode): string {
 
 // Phoenix not possible due to cross origin restrictions
 // RLOG not possible because it uses raw TCP
-export const LITE_ALLOWED_LIVE_MODES: LiveMode[] = ["nt4", "nt4-akit", "ftcdashboard", "rev"];
+export const LITE_ALLOWED_LIVE_MODES: LiveMode[] = ["nt4", "nt4-akit", "nt4-systemcore", "ftcdashboard", "rev"];
 
 export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
   if ("theme" in newPrefs && (newPrefs.theme === "light" || newPrefs.theme === "dark" || newPrefs.theme === "system")) {
@@ -106,6 +112,7 @@ export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
     "liveMode" in newPrefs &&
     (newPrefs.liveMode === "nt4" ||
       newPrefs.liveMode === "nt4-akit" ||
+      newPrefs.liveMode === "nt4-systemcore" ||
       newPrefs.liveMode === "phoenix" ||
       newPrefs.liveMode === "rlog" ||
       newPrefs.liveMode === "ftcdashboard" ||
@@ -192,19 +199,31 @@ export function mergePreferences(basePrefs: Preferences, newPrefs: object) {
   if ("skipHootNonProWarning" in newPrefs && typeof newPrefs.skipHootNonProWarning === "boolean") {
     basePrefs.skipHootNonProWarning = newPrefs.skipHootNonProWarning;
   }
-  if (
-    "skipNumericArrayDeprecationWarning" in newPrefs &&
-    typeof newPrefs.skipNumericArrayDeprecationWarning === "boolean"
-  ) {
-    basePrefs.skipNumericArrayDeprecationWarning = newPrefs.skipNumericArrayDeprecationWarning;
-  }
-  if ("skipFTCExperimentalWarning" in newPrefs && typeof newPrefs.skipFTCExperimentalWarning === "boolean") {
-    basePrefs.skipFTCExperimentalWarning = newPrefs.skipFTCExperimentalWarning;
-  }
-  if ("skipFrcLogFolderDefault" in newPrefs && typeof newPrefs.skipFrcLogFolderDefault === "boolean") {
-    basePrefs.skipFrcLogFolderDefault = newPrefs.skipFrcLogFolderDefault;
-  }
   if ("ctreLicenseAccepted" in newPrefs && typeof newPrefs.ctreLicenseAccepted === "boolean") {
     basePrefs.ctreLicenseAccepted = newPrefs.ctreLicenseAccepted;
   }
+  if (
+    "systemcoreStaticAddress" in newPrefs &&
+    (newPrefs.systemcoreStaticAddress === "" ||
+      newPrefs.systemcoreStaticAddress === "usb" ||
+      newPrefs.systemcoreStaticAddress === "wifi")
+  ) {
+    basePrefs.systemcoreStaticAddress = newPrefs.systemcoreStaticAddress;
+  }
+  if ("hasScrolledLineGraph" in newPrefs && typeof newPrefs.hasScrolledLineGraph === "boolean") {
+    basePrefs.hasScrolledLineGraph = newPrefs.hasScrolledLineGraph;
+  }
+  if ("hasScrolledTimeline" in newPrefs && typeof newPrefs.hasScrolledTimeline === "boolean") {
+    basePrefs.hasScrolledTimeline = newPrefs.hasScrolledTimeline;
+  }
+}
+
+export function getRobotAddress(preferences: Preferences, platform: string): string {
+  if (preferences.systemcoreStaticAddress === "usb") {
+    return platform === "win32" ? "172.26.0.1" : "172.27.0.1";
+  }
+  if (preferences.systemcoreStaticAddress === "wifi") {
+    return "172.30.0.1";
+  }
+  return preferences.robotAddress;
 }

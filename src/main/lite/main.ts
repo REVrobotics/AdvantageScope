@@ -7,13 +7,15 @@
 
 import TinyPopupMenu, { MenuItem, Submenu } from "tiny-popup-menu";
 import { AdvantageScopeAssets } from "../../shared/AdvantageScopeAssets";
-import { BUILD_DATE, COPYRIGHT, LITE_VERSION } from "../../shared/buildConstants";
+import { BUILD_DATE, COPYRIGHT, Distribution, DISTRIBUTION, LITE_VERSION } from "../../shared/buildConstants";
 import ButtonRect from "../../shared/ButtonRect";
 import { ensureThemeContrast } from "../../shared/Colors";
+import { HubState } from "../../shared/HubState";
 import LineGraphFilter from "../../shared/LineGraphFilter";
 import NamedMessage from "../../shared/NamedMessage";
 import {
   DEFAULT_PREFS,
+  DEFAULT_PREFS_LITEDS,
   getLiveModeName,
   LITE_ALLOWED_LIVE_MODES,
   LiveMode,
@@ -31,6 +33,7 @@ import { Units } from "../../shared/units";
 import { GITHUB_REPOSITORY } from "../github";
 import { loadAssets } from "./assetLoader";
 import { isAlpha, isBeta, isBetaExpired, isBetaWelcomeComplete, saveBetaWelcomeComplete } from "./betaUtil";
+import DEFAULT_DS_LAYOUT from "./dsLayout";
 import { LocalStorageKeys } from "./localStorageKeys";
 
 let HUB_FRAME: HTMLIFrameElement;
@@ -115,14 +118,19 @@ function openPopupWindow(
       // Close events
       if (!requireForceClose) {
         window.onclick = () => closePopupWindow();
-        POPUP_FRAME.contentWindow?.addEventListener("keydown", (event) => {
-          if (event.code === "Escape") {
-            closePopupWindow();
-          } else {
-            processKeydown(event);
-          }
-        });
+        POPUP_FRAME.contentWindow?.addEventListener(
+          "keydown",
+          (event) => {
+            if (event.code === "Escape") {
+              closePopupWindow();
+            } else {
+              processKeydown(event as KeyboardEvent);
+            }
+          },
+          { capture: true }
+        );
       }
+      POPUP_FRAME.contentWindow?.focus();
     };
     POPUP_FRAME.src = path;
   });
@@ -136,6 +144,7 @@ function closePopupWindow(forceClose = false) {
   POPUP_FRAME.hidden = true;
   POPUP_FRAME.src = "";
   HUB_FRAME.classList.remove("background");
+  window.focus();
   if (downloadInterval !== null) {
     window.clearInterval(downloadInterval);
   }
@@ -254,15 +263,22 @@ async function initHub() {
     platformArch: "",
     appVersion: LITE_VERSION
   });
-  let prefs = DEFAULT_PREFS;
+  sendMessage(hubPort, "show-feedback-button", isBeta());
+  let prefs = DISTRIBUTION === Distribution.LiteDS ? DEFAULT_PREFS_LITEDS : DEFAULT_PREFS;
   let prefsRaw = localStorage.getItem(LocalStorageKeys.PREFS);
   if (prefsRaw !== null) mergePreferences(prefs, JSON.parse(prefsRaw));
   sendMessage(hubPort, "set-preferences", prefs);
   sendMessage(hubPort, "set-assets", await assetsPromise);
   let typeMemory = localStorage.getItem(LocalStorageKeys.TYPE_MEMORY);
   if (typeMemory !== null) sendMessage(hubPort, "restore-type-memory", JSON.parse(typeMemory));
-  let state = localStorage.getItem(LocalStorageKeys.STATE);
-  if (state !== null) sendMessage(hubPort, "restore-state", JSON.parse(state));
+  let state: HubState | null = null;
+  let stateStr = localStorage.getItem(LocalStorageKeys.STATE);
+  if (stateStr !== null) {
+    state = JSON.parse(stateStr);
+  } else if (DISTRIBUTION === Distribution.LiteDS) {
+    state = DEFAULT_DS_LAYOUT;
+  }
+  if (state !== null) sendMessage(hubPort, "restore-state", state);
   sendMessage(hubPort, "show-when-ready");
 
   // Add cursor event handlers
@@ -285,7 +301,9 @@ async function initHub() {
   HUB_FRAME.contentWindow?.addEventListener("mousemove", (event) => event.preventDefault());
 
   // Add key handling event
-  HUB_FRAME.contentWindow?.addEventListener("keydown", (event) => processKeydown(event));
+  HUB_FRAME.contentWindow?.addEventListener("keydown", (event) => processKeydown(event as KeyboardEvent), {
+    capture: true
+  });
 }
 
 async function handleHubMessage(message: NamedMessage) {
@@ -320,6 +338,17 @@ async function handleHubMessage(message: NamedMessage) {
       }
       break;
 
+    case "update-preferences":
+      {
+        let prefs = DISTRIBUTION === Distribution.LiteDS ? DEFAULT_PREFS_LITEDS : DEFAULT_PREFS;
+        let prefsRaw = localStorage.getItem(LocalStorageKeys.PREFS);
+        if (prefsRaw !== null) mergePreferences(prefs, JSON.parse(prefsRaw));
+        mergePreferences(prefs, message.data);
+        localStorage.setItem(LocalStorageKeys.PREFS, JSON.stringify(prefs));
+        sendMessage(hubPort, "set-preferences", prefs);
+      }
+      break;
+
     case "open-feedback":
       window.open("https://github.com/" + GITHUB_REPOSITORY + "/issues/new/choose", "_blank");
       break;
@@ -345,40 +374,6 @@ async function handleHubMessage(message: NamedMessage) {
       }
       break;
 
-    case "numeric-array-deprecation-warning":
-      {
-        let shouldForce: boolean = message.data.force;
-        let prefs = DEFAULT_PREFS;
-        let prefsRaw = localStorage.getItem(LocalStorageKeys.PREFS);
-        if (prefsRaw !== null) mergePreferences(prefs, JSON.parse(prefsRaw));
-        if (!shouldForce && prefs.skipNumericArrayDeprecationWarning) return;
-        if (!prefs.skipNumericArrayDeprecationWarning) {
-          prefs.skipNumericArrayDeprecationWarning = true;
-          localStorage.setItem(LocalStorageKeys.PREFS, JSON.stringify(prefs));
-        }
-        alert(
-          "The legacy numeric array format for structured data is deprecated and will be removed in 2027. Check the AdvantageScope documentation for details on migrating to a modern alternative."
-        );
-      }
-      break;
-
-    case "ftc-experimental-warning":
-      {
-        let prefs = DEFAULT_PREFS;
-        let prefsRaw = localStorage.getItem(LocalStorageKeys.PREFS);
-        if (prefsRaw !== null) mergePreferences(prefs, JSON.parse(prefsRaw));
-        if (prefs.skipFTCExperimentalWarning) return;
-        if (
-          confirm(
-            "Support for FTC fields in AdvantageScope is an experimental feature, and may not function properly in all cases. Please report any problems via the GitHub issues page. Select OK to hide this message in the future."
-          )
-        ) {
-          prefs.skipFTCExperimentalWarning = true;
-          localStorage.setItem(LocalStorageKeys.PREFS, JSON.stringify(prefs));
-        }
-      }
-      break;
-
     case "open-link":
       window.open(message.data, "_blank");
       break;
@@ -400,23 +395,29 @@ async function handleHubMessage(message: NamedMessage) {
                 callback() {
                   let detailLines: string[] = [];
                   detailLines.push("Version: " + LITE_VERSION);
-                  detailLines.push("Distribution: Lite");
+                  detailLines.push(
+                    "Distribution: " + (DISTRIBUTION === Distribution.Lite ? "Lite" : "Lite (Driver Station)")
+                  );
                   detailLines.push("Build Date: " + BUILD_DATE);
                   detailLines.push("User Agent: " + navigator.userAgent);
                   let detail = detailLines.join("\n");
                   window.alert("======= AdvantageScope Lite =======\n" + COPYRIGHT + "\n\n" + detail);
                 }
               },
-              {
-                content: `Show Preferences (\u21e7 ${modifier} ,)`,
-                callback() {
-                  openPreferences();
-                }
-              },
+              ...(DISTRIBUTION === Distribution.LiteDS
+                ? []
+                : [
+                    {
+                      content: `Show Preferences (\u21e7 ${modifier} ,)`,
+                      callback() {
+                        openPreferences();
+                      }
+                    }
+                  ]),
               {
                 content: `Show Licenses`,
                 callback() {
-                  openPopupWindow("../www/licenses.html", [50, 75], "percent");
+                  openPopupWindow("www/licenses.html", [50, 75], "percent");
                 }
               }
             ];
@@ -437,29 +438,33 @@ async function handleHubMessage(message: NamedMessage) {
               {
                 content: `Connect Live (${modifier} K)`,
                 callback() {
-                  sendMessage(hubPort, "start-live", false);
+                  sendMessage(hubPort, "start-live", DISTRIBUTION === Distribution.LiteDS ? "ds" : "robot");
                 }
               },
-              {
-                content: "Set Live Mode",
-                items: LITE_ALLOWED_LIVE_MODES.map((liveMode: LiveMode) => {
-                  return {
-                    content: (prefs.liveMode === liveMode ? "\u2714 " : "") + getLiveModeName(liveMode),
-                    callback() {
-                      prefs.liveMode = liveMode;
-                      localStorage.setItem(LocalStorageKeys.PREFS, JSON.stringify(prefs));
-                      sendMessage(hubPort, "set-preferences", prefs);
-                      sendMessage(hubPort, "start-live", false);
+              ...(DISTRIBUTION === Distribution.LiteDS
+                ? []
+                : [
+                    {
+                      content: "Set Live Mode",
+                      items: LITE_ALLOWED_LIVE_MODES.map((liveMode: LiveMode) => {
+                        return {
+                          content: (prefs.liveMode === liveMode ? "\u2714 " : "") + getLiveModeName(liveMode),
+                          callback() {
+                            prefs.liveMode = liveMode;
+                            localStorage.setItem(LocalStorageKeys.PREFS, JSON.stringify(prefs));
+                            sendMessage(hubPort, "set-preferences", prefs);
+                            sendMessage(hubPort, "start-live", "robot");
+                          }
+                        };
+                      })
+                    },
+                    {
+                      content: `Upload Asset`,
+                      callback() {
+                        openUploadAsset();
+                      }
                     }
-                  };
-                })
-              },
-              {
-                content: `Upload Asset`,
-                callback() {
-                  openUploadAsset();
-                }
-              }
+                  ])
             ];
             break;
 
@@ -507,6 +512,16 @@ async function handleHubMessage(message: NamedMessage) {
                     };
                   })
               },
+              ...((DISTRIBUTION === Distribution.LiteDS
+                ? [
+                    {
+                      content: "Reset Layout",
+                      callback() {
+                        sendMessage(hubPort, "restore-state", DEFAULT_DS_LAYOUT);
+                      }
+                    }
+                  ]
+                : []) as (MenuItem | Submenu | "-")[]),
               "-",
               {
                 content: `Previous Tab (${modifier} \u2190 )`,
@@ -564,12 +579,31 @@ async function handleHubMessage(message: NamedMessage) {
                   window.open("https://github.com/" + GITHUB_REPOSITORY, "_blank");
                 }
               },
+              ...((DISTRIBUTION === Distribution.LiteDS
+                ? [
+                    // Add additional documentation links for the DS distribution (AdvantageScope docs are not bundled)
+                    "-",
+                    {
+                      content: "AdvantageScope Documentation",
+                      callback() {
+                        window.open("https://docs.advantagescope.org", "_blank");
+                      }
+                    },
+                    {
+                      content: "Driver Station Documentation",
+                      callback() {
+                        window.open("https://github.com/wpilibsuite/FirstDriverStation-Public", "_blank");
+                      }
+                    }
+                  ]
+                : []) as (MenuItem | Submenu | "-")[]),
               {
                 content: "WPILib Documentation",
                 callback() {
                   window.open("https://docs.wpilib.org", "_blank");
                 }
               },
+              ...((DISTRIBUTION === Distribution.LiteDS ? ["-"] : []) as (MenuItem | Submenu | "-")[]),
               {
                 content: "Littleton Robotics",
                 callback() {
@@ -795,11 +829,12 @@ async function handleHubMessage(message: NamedMessage) {
         const menuItems: (MenuItem | Submenu | "-")[] = [];
 
         if (legend === "discrete") {
+          let showRobotMode: boolean = message.data.showRobotMode;
           // Discrete controls
           menuItems.push({
-            content: "Add Enabled State",
+            content: (showRobotMode ? "\u2714 " : "") + "Show Robot Mode",
             callback() {
-              sendMessage(hubPort, "add-discrete-enabled");
+              sendMessage(hubPort, "set-robot-mode-visible", { showRobotMode: !showRobotMode });
             }
           });
         } else {
@@ -898,10 +933,10 @@ async function handleHubMessage(message: NamedMessage) {
                 content: "Edit Conversion",
                 async callback() {
                   let port = await openPopupWindow("www/unitConversion.html", [300, 162], "pixels", (message) => {
+                    closePopupWindow();
                     if (message === null) return;
                     unitConversion.autoTarget = null;
                     unitConversion.preset = message;
-                    closePopupWindow();
                     sendMessage(hubPort, "edit-axis", {
                       legend: legend,
                       lockedRange: lockedRange,
@@ -1182,30 +1217,31 @@ async function handleHubMessage(message: NamedMessage) {
  */
 function processKeydown(event: KeyboardEvent): boolean {
   let triggered = true;
+  let modifier = event.metaKey || event.ctrlKey;
   let lowerKey = event.key.toLowerCase();
-  if (event.shiftKey && event.metaKey && lowerKey === "o") {
+  if (event.shiftKey && modifier && lowerKey === "o") {
     openDownload();
-  } else if (!event.shiftKey && event.metaKey && lowerKey === "k") {
+  } else if (!event.shiftKey && modifier && lowerKey === "k") {
     sendMessage(hubPort, "start-live", false);
-  } else if (!event.shiftKey && event.metaKey && lowerKey === "\\") {
+  } else if (!event.shiftKey && modifier && lowerKey === "\\") {
     sendMessage(hubPort, "zoom-enabled");
-  } else if (!event.shiftKey && event.metaKey && lowerKey === ".") {
+  } else if (!event.shiftKey && modifier && lowerKey === ".") {
     sendMessage(hubPort, "toggle-sidebar");
-  } else if (!event.shiftKey && event.metaKey && lowerKey === "/") {
+  } else if (!event.shiftKey && modifier && lowerKey === "/") {
     sendMessage(hubPort, "toggle-controls");
-  } else if (!event.shiftKey && event.metaKey && lowerKey === "arrowleft") {
+  } else if (!event.shiftKey && modifier && lowerKey === "arrowleft") {
     sendMessage(hubPort, "move-tab", -1);
-  } else if (!event.shiftKey && event.metaKey && lowerKey === "arrowright") {
+  } else if (!event.shiftKey && modifier && lowerKey === "arrowright") {
     sendMessage(hubPort, "move-tab", 1);
-  } else if (!event.shiftKey && event.metaKey && lowerKey === "[") {
+  } else if (!event.shiftKey && modifier && lowerKey === "[") {
     sendMessage(hubPort, "shift-tab", -1);
-  } else if (!event.shiftKey && event.metaKey && lowerKey === "]") {
+  } else if (!event.shiftKey && modifier && lowerKey === "]") {
     sendMessage(hubPort, "shift-tab", 1);
-  } else if (!event.shiftKey && event.metaKey && lowerKey === "e") {
+  } else if (!event.shiftKey && modifier && lowerKey === "e") {
     sendMessage(hubPort, "close-tab", false);
-  } else if (event.shiftKey && event.metaKey && lowerKey === ",") {
+  } else if (event.shiftKey && modifier && lowerKey === "," && DISTRIBUTION !== Distribution.LiteDS) {
     openPreferences();
-  } else if (!event.shiftKey && !event.metaKey && event.altKey && !event.code.startsWith("Alt")) {
+  } else if (!event.shiftKey && !modifier && event.altKey && !event.code.startsWith("Alt")) {
     triggered = false;
     getAllTabTypes()
       .filter((tabType) => LITE_COMPATIBLE_TABS.includes(tabType))
@@ -1229,6 +1265,11 @@ function processKeydown(event: KeyboardEvent): boolean {
 
 // Get elements on page load
 window.addEventListener("load", () => {
+  // Set tab title
+  if (DISTRIBUTION === Distribution.LiteDS) {
+    document.title = "AdvantageScope Lite (DS)";
+  }
+
   // Load assets
   assetsPromise = loadAssets();
 
@@ -1270,24 +1311,30 @@ window.addEventListener("load", () => {
             code: event.code,
             metaKey: event.metaKey,
             ctrlKey: event.ctrlKey,
-            altKey: event.altKey
+            altKey: event.altKey,
+            shiftKey: event.shiftKey
           })
         );
       }
     },
     { capture: true }
   );
-  window.addEventListener("keyup", (event) => {
-    HUB_FRAME.contentWindow?.dispatchEvent(
-      new KeyboardEvent("keyup", {
-        key: event.key,
-        code: event.code,
-        metaKey: event.metaKey,
-        ctrlKey: event.ctrlKey,
-        altKey: event.altKey
-      })
-    );
-  });
+  window.addEventListener(
+    "keyup",
+    (event) => {
+      HUB_FRAME.contentWindow?.dispatchEvent(
+        new KeyboardEvent("keyup", {
+          key: event.key,
+          code: event.code,
+          metaKey: event.metaKey,
+          ctrlKey: event.ctrlKey,
+          altKey: event.altKey,
+          shiftKey: event.shiftKey
+        })
+      );
+    },
+    { capture: true }
+  );
 
   // Handle hub loading
   if (HUB_FRAME.contentWindow?.document.readyState === "complete") {
@@ -1302,6 +1349,7 @@ window.addEventListener("load", () => {
   if (isBeta()) {
     if (isBetaExpired()) {
       if (
+        DISTRIBUTION != Distribution.LiteDS &&
         confirm(
           `The AdvantageScope Lite ${
             isAlpha() ? "alpha" : "beta"
